@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Poetry Era — Find the closest time period</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body>
+  <main class="container">
+    <header class="header">
+      <h1>Poetry Era</h1>
+      <p class="tagline">Paste a poem and discover its closest time period match.</p>
+    </header>
+
+    <section class="input-section">
+      <label for="poem-input">Your poem</label>
+      <textarea
+        id="poem-input"
+        name="poem"
+        rows="12"
+        placeholder="Paste or type a poem here…"
+        autofocus
+      ></textarea>
+      <div class="actions">
+        <button type="button" id="analyze-btn" class="btn btn-primary">Analyze</button>
+        <button type="button" id="clear-btn" class="btn btn-secondary">Clear</button>
+      </div>
+    </section>
+
+    <section class="result-section" id="result-section" aria-live="polite" hidden>
+      <h2>Result</h2>
+      <div id="result-content"></div>
+    </section>
+
+    <section class="error-section" id="error-section" aria-live="assertive" hidden>
+      <p id="error-message"></p>
+    </section>
+
+    <div id="loading" class="loading" hidden aria-busy="true">Analyzing…</div>
+  </main>
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
