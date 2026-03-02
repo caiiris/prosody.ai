@@ -3,4 +3,5 @@ CS109 Final Project
 
 
 Credits:
-concreteness_ratings.csv taken from https://pubmed.ncbi.nlm.nih.gov/24142837/
+- poems taken from Poetry Foundation Poems dataset (https://www.kaggle.com/datasets/tgdivy/poetry-foundation-poems?resource=download) 
+- concreteness_ratings.csv scraped from https://pubmed.ncbi.nlm.nih.gov/24142837/
