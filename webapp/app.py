@@ -402,8 +402,8 @@ def analyze():
                 context = "low"
             else:
                 context = "moderate"
-            else:
-                context = "none" if val == 0.0 else "moderate"
+        else:
+            context = "none" if val == 0.0 else "moderate"
         feature_display.append({
             "key":   key,
             "label": meta["label"],
