@@ -13,7 +13,7 @@
   <main class="container">
     <header class="header">
       <h1>Poetry Era</h1>
-      <p class="tagline">Paste a poem and discover its closest time period match.</p>
+      <p class="tagline">Paste a poem and discover its closest time period.</p>
     </header>
 
     <section class="input-section">
@@ -31,17 +31,49 @@
       </div>
     </section>
 
-    <section class="result-section" id="result-section" aria-live="polite" hidden>
-      <h2>Result</h2>
-      <div id="result-content"></div>
-    </section>
+    <div id="loading" class="loading" hidden aria-busy="true">
+      <span class="loading-dot"></span>Analyzing…
+    </div>
 
     <section class="error-section" id="error-section" aria-live="assertive" hidden>
       <p id="error-message"></p>
     </section>
 
-    <div id="loading" class="loading" hidden aria-busy="true">Analyzing…</div>
+    <section class="result-section" id="result-section" aria-live="polite" hidden>
+
+      <!-- Era headline -->
+      <div class="result-era-header" id="era-header">
+        <div class="era-badge" id="era-badge"></div>
+        <div>
+          <div class="result-era-name" id="era-name"></div>
+          <div class="result-era-years" id="era-years"></div>
+        </div>
+      </div>
+      <p class="result-era-desc" id="era-desc"></p>
+
+      <!-- Probability bars -->
+      <div class="result-block">
+        <h3 class="block-title">Era probabilities</h3>
+        <div id="prob-bars"></div>
+      </div>
+
+      <!-- Top reasons -->
+      <div class="result-block">
+        <h3 class="block-title">Why we think so</h3>
+        <ul class="reasons-list" id="reasons-list"></ul>
+      </div>
+
+      <!-- Feature values -->
+      <div class="result-block">
+        <h3 class="block-title">Feature breakdown</h3>
+        <table class="feature-table" id="feature-table">
+          <tbody></tbody>
+        </table>
+      </div>
+
+    </section>
   </main>
+
   <script src="{{ url_for('static', filename='app.js') }}"></script>
 </body>
 </html>

@@ -1,90 +1,116 @@
 (function () {
-  const poemInput = document.getElementById("poem-input");
-  const analyzeBtn = document.getElementById("analyze-btn");
-  const clearBtn = document.getElementById("clear-btn");
-  const resultSection = document.getElementById("result-section");
-  const resultContent = document.getElementById("result-content");
+  "use strict";
+
+  const poemInput    = document.getElementById("poem-input");
+  const analyzeBtn   = document.getElementById("analyze-btn");
+  const clearBtn     = document.getElementById("clear-btn");
+  const resultSection= document.getElementById("result-section");
   const errorSection = document.getElementById("error-section");
   const errorMessage = document.getElementById("error-message");
-  const loadingEl = document.getElementById("loading");
+  const loadingEl    = document.getElementById("loading");
 
-  function hideAllFeedback() {
+  // result sub-elements
+  const eraHeader  = document.getElementById("era-header");
+  const eraBadge   = document.getElementById("era-badge");
+  const eraName    = document.getElementById("era-name");
+  const eraYears   = document.getElementById("era-years");
+  const eraDesc    = document.getElementById("era-desc");
+  const probBars   = document.getElementById("prob-bars");
+  const reasonsList= document.getElementById("reasons-list");
+  const featureTable = document.getElementById("feature-table").querySelector("tbody");
+
+  function esc(text) {
+    const d = document.createElement("div");
+    d.textContent = text;
+    return d.innerHTML;
+  }
+
+  function hideAll() {
     resultSection.hidden = true;
-    errorSection.hidden = true;
-    loadingEl.hidden = true;
+    errorSection.hidden  = true;
+    loadingEl.hidden     = true;
   }
 
-  function showLoading(show) {
-    loadingEl.hidden = !show;
-    if (show) {
-      resultSection.hidden = true;
-      errorSection.hidden = true;
-    }
-  }
-
-  function showError(message) {
-    errorMessage.textContent = message;
+  function showError(msg) {
+    errorMessage.textContent = msg;
     errorSection.hidden = false;
     resultSection.hidden = true;
     loadingEl.hidden = true;
   }
 
+  function chipClass(ctx) {
+    const map = { high: "chip-high", low: "chip-low", typical: "chip-typical",
+                  none: "chip-none", present: "chip-present" };
+    return map[ctx] || "chip-typical";
+  }
+
   function renderResult(data) {
     errorSection.hidden = true;
 
-    if (data.message && !data.era) {
-      resultContent.innerHTML =
-        '<p class="result-message">' + escapeHtml(data.message) + "</p>";
-    } else {
-      let html = "";
-      if (data.era) {
-        html += '<p class="result-era">' + escapeHtml(data.era) + "</p>";
-        if (data.confidence != null) {
-          const pct = Math.round(data.confidence * 100);
-          html +=
-            '<p class="result-confidence">Confidence: ' + pct + "%</p>";
-        }
-      }
-      if (data.alternatives && data.alternatives.length > 0) {
-        html += '<div class="result-alternatives">';
-        html += "<h3>Other close matches</h3><ul>";
-        data.alternatives.forEach(function (alt) {
-          const pct = Math.round((alt.confidence || 0) * 100);
-          html +=
-            "<li><span>" +
-            escapeHtml(alt.era) +
-            "</span> <span>" +
-            pct +
-            "%</span></li>";
-        });
-        html += "</ul></div>";
-      }
-      if (data.message && data.era) {
-        html += '<p class="result-message">' + escapeHtml(data.message) + "</p>";
-      }
-      resultContent.innerHTML = html || "<p>No result.</p>";
-    }
+    // Era header
+    eraBadge.style.background = data.era_meta.color;
+    eraName.textContent  = data.era_meta.label;
+    eraYears.textContent = data.era_meta.years;
+    eraDesc.textContent  = data.era_meta.description;
+
+    // Probability bars
+    probBars.innerHTML = "";
+    const sorted = [...data.probabilities].sort((a, b) => b.prob - a.prob);
+    sorted.forEach(function (item) {
+      const pct  = Math.round(item.prob * 100);
+      const isActive = item.era === data.era;
+      const row  = document.createElement("div");
+      row.className = "prob-row" + (isActive ? " active" : "");
+
+      // Choose bar colour from era meta (sent in probabilities array's colour)
+      const colorMap = {
+        "Pre-1800":  "#5c4033",
+        "1800-1900": "#2d4a3e",
+        "Post-1900": "#1a3a5c",
+      };
+      const barColor = isActive ? (colorMap[item.era] || "#2d4a3e") : "#c8c0b4";
+
+      row.innerHTML =
+        '<div class="prob-era-name">' + esc(item.label) + "</div>" +
+        '<div class="prob-bar-bg"><div class="prob-bar-fill" style="width:' +
+        pct + '%;background:' + barColor + '"></div></div>' +
+        '<div class="prob-pct">' + pct + "%</div>";
+      probBars.appendChild(row);
+    });
+
+    // Top reasons
+    reasonsList.innerHTML = "";
+    (data.top_reasons || []).forEach(function (reason) {
+      const li = document.createElement("li");
+      li.innerHTML = '<span class="reason-bullet"></span><span>' + esc(reason) + "</span>";
+      reasonsList.appendChild(li);
+    });
+
+    // Feature table
+    featureTable.innerHTML = "";
+    (data.features || []).forEach(function (f) {
+      const valStr = f.unit ? f.value + "\u202f" + f.unit : String(f.value);
+      const ctxLabel = { high: "High", low: "Low", typical: "Typical",
+                         none: "None", present: "Present" }[f.context] || f.context;
+      const tr = document.createElement("tr");
+      tr.innerHTML =
+        '<td class="feat-name">'  + esc(f.label)  + "</td>" +
+        '<td class="feat-value">' + esc(valStr)    + "</td>" +
+        '<td class="feat-ctx"><span class="feat-chip ' + chipClass(f.context) + '">' +
+        esc(ctxLabel) + "</span></td>";
+      featureTable.appendChild(tr);
+    });
 
     resultSection.hidden = false;
     loadingEl.hidden = true;
   }
 
-  function escapeHtml(text) {
-    const div = document.createElement("div");
-    div.textContent = text;
-    return div.innerHTML;
-  }
-
   analyzeBtn.addEventListener("click", function () {
     const poem = poemInput.value.trim();
-    hideAllFeedback();
+    hideAll();
+    if (!poem) { showError("Please paste or type a poem first."); return; }
 
-    if (!poem) {
-      showError("Please paste or type a poem first.");
-      return;
-    }
-
-    showLoading(true);
+    loadingEl.hidden = false;
     analyzeBtn.disabled = true;
 
     fetch("/analyze", {
@@ -99,25 +125,17 @@
         });
       })
       .then(renderResult)
-      .catch(function (err) {
-        showError(err.message || "Something went wrong. Try again.");
-      })
-      .finally(function () {
-        showLoading(false);
-        analyzeBtn.disabled = false;
-      });
+      .catch(function (err) { showError(err.message || "Something went wrong. Try again."); })
+      .finally(function () { loadingEl.hidden = true; analyzeBtn.disabled = false; });
   });
 
   clearBtn.addEventListener("click", function () {
     poemInput.value = "";
     poemInput.focus();
-    hideAllFeedback();
+    hideAll();
   });
 
   poemInput.addEventListener("keydown", function (e) {
-    if (e.key === "Enter" && e.ctrlKey) {
-      e.preventDefault();
-      analyzeBtn.click();
-    }
+    if (e.key === "Enter" && e.ctrlKey) { e.preventDefault(); analyzeBtn.click(); }
   });
 })();
