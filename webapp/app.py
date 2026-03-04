@@ -256,8 +256,12 @@ def build_hurdle_row(feat: dict) -> dict:
 def train_or_load_models(train_csv: str, pkl_path: str):
     if os.path.exists(pkl_path):
         log.info("Loading cached models from %s", pkl_path)
-        with open(pkl_path, "rb") as f:
-            return pickle.load(f)
+        try:
+            with open(pkl_path, "rb") as f:
+                return pickle.load(f)
+        except (AttributeError, pickle.UnpicklingError) as e:
+            log.warning("Pickle load failed (%s), retraining…", e)
+            os.remove(pkl_path)
 
     log.info("Training models on %s …", train_csv)
     df = pd.read_csv(train_csv)
