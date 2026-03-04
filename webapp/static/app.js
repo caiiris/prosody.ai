@@ -39,7 +39,7 @@
   }
 
   function chipClass(ctx) {
-    const map = { high: "chip-high", low: "chip-low", typical: "chip-typical",
+    const map = { high: "chip-high", low: "chip-low", moderate: "chip-typical",
                   none: "chip-none", present: "chip-present" };
     return map[ctx] || "chip-typical";
   }
@@ -90,7 +90,7 @@
     featureTable.innerHTML = "";
     (data.features || []).forEach(function (f) {
       const valStr = f.unit ? f.value + "\u202f" + f.unit : String(f.value);
-      const ctxLabel = { high: "High", low: "Low", typical: "Typical",
+      const ctxLabel = { high: "High", low: "Low", moderate: "Moderate",
                          none: "None", present: "Present" }[f.context] || f.context;
       const tr = document.createElement("tr");
       tr.innerHTML =

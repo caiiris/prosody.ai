@@ -45,11 +45,11 @@ ERA_META  = {
 FEATURE_META = {
     "cap_rate":                {"label": "Line capitalisation",       "unit": "%",       "scale": 100},
     "punct_rate":              {"label": "Line-end punctuation",      "unit": "%",       "scale": 100},
-    "colon_density":           {"label": "Colon / semicolon density", "unit": "/100 w",  "scale": 1},
+    "colon_density":           {"label": "Colon / semicolon density", "unit": "/100 words",  "scale": 1},
     "concrete_abstract_ratio": {"label": "Concrete-to-abstract ratio","unit": "",        "scale": 1},
     "adv_verb_ratio":          {"label": "Adverb-to-verb ratio",      "unit": "",        "scale": 1},
     "rhyme_rate":              {"label": "Rhyme rate",                "unit": "%",       "scale": 100},
-    "archaic_density":         {"label": "Archaic word density",      "unit": "/100 w",  "scale": 1},
+    "archaic_density":         {"label": "Archaic word density",      "unit": "/100 words",  "scale": 1},
 }
 
 logging.basicConfig(level=logging.INFO)
@@ -188,7 +188,7 @@ class BayesianHurdleNB:
             lps[c] = lp
         return lps
 
-    def explain(self, row: dict, force_era: str = None) -> dict:
+    def explain(self, row: dict, force_era: str = None, force_era_means: dict = None) -> dict:
         """
         Compute per-feature log-likelihood contributions.
         If force_era is given, generate reasons relative to that era
@@ -221,12 +221,36 @@ class BayesianHurdleNB:
 
         top = []
         for feat, adv, val in reasons[:3]:
-            meta = FEATURE_META.get(feat, {"label": feat, "unit": "", "scale": 1})
-            disp = val * meta["scale"]
-            unit = meta["unit"]
-            name = meta["label"]
-            direction = "supports" if adv > 0 else "weakens"
-            top.append(f"{name}: {disp:.1f}{unit} — {direction} {predicted}")
+            meta         = FEATURE_META.get(feat, {"label": feat, "unit": "", "scale": 1})
+            scale        = meta["scale"]
+            unit         = meta["unit"]
+            name         = meta["label"]
+            disp         = val * scale
+            era_means    = force_era_means or {}
+            pred_mean    = era_means.get(predicted, {}).get(feat, None)
+            other_means  = [era_means.get(c, {}).get(feat, None)
+                            for c in self.classes_ if c != predicted]
+            other_means  = [m for m in other_means if m is not None]
+
+            if pred_mean is not None and other_means:
+                avg_other = np.mean(other_means)
+                pred_disp = pred_mean * scale
+                other_disp = avg_other * scale
+                if unit:
+                    top.append(
+                        f"{name}: {disp:.1f}{unit} "
+                        f"(avg {predicted}: {pred_disp:.1f}{unit}, "
+                        f"other eras: {other_disp:.1f}{unit})"
+                    )
+                else:
+                    top.append(
+                        f"{name}: {disp:.2f} "
+                        f"(avg {predicted}: {pred_disp:.2f}, "
+                        f"other eras: {other_disp:.2f})"
+                    )
+            else:
+                direction = "consistent with" if adv > 0 else "atypical for"
+                top.append(f"{name}: {disp:.1f}{unit} — {direction} {predicted}")
 
         return {
             "predicted": predicted,
@@ -355,8 +379,9 @@ def analyze():
     rf_probs = {c: float(rf_probs_arr[list(rf_classes).index(c)]) for c in ERA_ORDER}
     rf_pred  = max(rf_probs, key=rf_probs.get)
 
-    # BH-NB explanations — anchored to RF's predicted era
-    bnb_result = BUNDLE["bnb"].explain(feat_clean, force_era=rf_pred)
+    # BH-NB explanations — anchored to RF's predicted era, with era means for context
+    bnb_result = BUNDLE["bnb"].explain(feat_clean, force_era=rf_pred,
+                                       force_era_means=BUNDLE["era_means"])
 
     # Feature display: value + context vs era means
     era_means = BUNDLE["era_means"]
@@ -376,9 +401,9 @@ def analyze():
             elif ratio < 0.6:
                 context = "low"
             else:
-                context = "typical"
-        else:
-            context = "none" if val == 0.0 else "present"
+                context = "moderate"
+            else:
+                context = "none" if val == 0.0 else "moderate"
         feature_display.append({
             "key":   key,
             "label": meta["label"],
