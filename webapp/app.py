@@ -302,11 +302,17 @@ def train_or_load_models(train_csv: str, pkl_path: str):
 app = Flask(__name__)
 
 log.info("Loading NLP resources…")
-LEX      = load_concreteness(CONC_PATH)
-POS_TAG  = load_nltk_pos()
-CMU      = load_cmu()
-BUNDLE   = train_or_load_models(TRAIN_CSV, MODEL_PKL)
+LEX     = load_concreteness(CONC_PATH)
+POS_TAG = load_nltk_pos()
+CMU     = load_cmu()
+BUNDLE  = train_or_load_models(TRAIN_CSV, MODEL_PKL)
 log.info("Ready.")
+
+# Warm up NLTK tagger with a dummy call so first request is fast
+try:
+    POS_TAG(["warm"])
+except Exception:
+    pass
 
 
 # ── Routes ─────────────────────────────────────────────────────────────────────
