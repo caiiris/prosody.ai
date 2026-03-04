@@ -17,7 +17,6 @@
   const eraDesc      = document.getElementById("era-desc");
   const probBars     = document.getElementById("prob-bars");
   const reasonsList  = document.getElementById("reasons-list");
-  const mixedSignals = document.getElementById("mixed-signals");
   const featureTable = document.getElementById("feature-table").querySelector("tbody");
   const correctEra   = document.getElementById("correct-era");
   const feedbackThanks = document.getElementById("feedback-thanks");
@@ -81,10 +80,7 @@
       probBars.appendChild(row);
     });
 
-    // Mixed-signals banner (shown when RF confidence is low)
-    mixedSignals.hidden = !!data.models_agree;
-
-    // Reasons always shown
+    // Reasons
     reasonsList.innerHTML = "";
     (data.top_reasons || []).forEach(function (reason) {
       const li = document.createElement("li");

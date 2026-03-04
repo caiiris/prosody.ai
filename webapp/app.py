@@ -379,10 +379,6 @@ def analyze():
     rf_probs = {c: float(rf_probs_arr[list(rf_classes).index(c)]) for c in ERA_ORDER}
     rf_pred  = max(rf_probs, key=rf_probs.get)
 
-    # "Mixed signals" = RF itself is not confident in its top prediction
-    rf_confidence = rf_probs[rf_pred]
-    models_agree = rf_confidence >= 0.55
-
     # BH-NB explanations anchored to RF's predicted era
     bnb_result = BUNDLE["bnb"].explain(feat_clean, force_era=rf_pred,
                                        force_era_means=BUNDLE["era_means"])
@@ -415,7 +411,6 @@ def analyze():
     return jsonify({
         "era":          rf_pred,
         "era_meta":     ERA_META[rf_pred],
-        "models_agree": models_agree,
         "probabilities": [
             {"era": e, "label": ERA_META[e]["label"],
              "years": ERA_META[e]["years"],
