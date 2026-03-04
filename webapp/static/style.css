@@ -278,3 +278,25 @@ body {
 .chip-typical { background: #e8f0fd; color: #1a3a7a; }
 .chip-none    { background: #f0ece5; color: #888; }
 .chip-present { background: #fff3cd; color: #664d00; }
+
+/* ── Footer ── */
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 3rem;
+  padding-bottom: 2rem;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+.footer-sep { opacity: 0.4; }
+.footer-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  color: var(--muted);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+.footer-link:hover { color: var(--accent); }
