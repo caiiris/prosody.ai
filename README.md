@@ -1,4 +1,4 @@
-# poem-classifier
+# Prosody.ai
 CS109 Final Project
 
 Try out the classifier for yourself: https://poem-classifier-caiiris.onrender.com/
