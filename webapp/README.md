@@ -1,4 +1,4 @@
-# Poetry Era webapp
+# prosody.ai
 
 Paste a poem and see its closest time period match.
 
@@ -28,3 +28,4 @@ In `app.py`, replace the body of `_placeholder_predict(poem)` (or the logic insi
 2. Run your feature extraction on `poem`.
 3. Call `model.predict()` / pipeline and map the predicted class to an era name.
 4. Return `{"era": "...", "confidence": ..., "alternatives": [...]}` in the same shape as the placeholder so the existing frontend keeps working.
+
